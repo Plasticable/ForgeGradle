@@ -32,6 +32,11 @@ public class Version
             {
                 if (lib.applies())
                 {
+                    if (lib.name.equals("net.sourceforge.argo:argo:2.25")) {
+                        System.out.println("Bumping Agro version");
+                        lib.name = "net.sourceforge.argo:argo:3.4";
+                    }
+
                     _libraries.add(lib);
                 }
             }
