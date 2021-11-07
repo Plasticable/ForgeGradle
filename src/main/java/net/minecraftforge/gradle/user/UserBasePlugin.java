@@ -23,6 +23,7 @@ import static net.minecraftforge.gradle.user.UserConstants.REOBF_NOTCH_SRG;
 import static net.minecraftforge.gradle.user.UserConstants.REOBF_SRG;
 import static net.minecraftforge.gradle.user.UserConstants.RES_DIR;
 import static net.minecraftforge.gradle.user.UserConstants.SOURCES_DIR;
+
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlParser;
@@ -78,7 +79,6 @@ import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.scala.ScalaCompile;
-import org.gradle.listener.ActionBroadcast;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
@@ -97,14 +97,12 @@ import org.w3c.dom.NodeList;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 
-public abstract class UserBasePlugin extends BasePlugin<UserExtension>
-{
+public abstract class UserBasePlugin extends BasePlugin<UserExtension> {
     private boolean hasApplied = false;
 
     @SuppressWarnings("serial")
     @Override
-    public void applyPlugin()
-    {
+    public void applyPlugin() {
         this.applyExternalPlugin("java");
         this.applyExternalPlugin("maven");
         this.applyExternalPlugin("eclipse");
@@ -136,52 +134,44 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         project.getTasks().getByName("reobf").dependsOn("genSrgs");
         project.getTasks().getByName("compileJava").dependsOn("deobfBinJar");
         project.getTasks().getByName("compileApiJava").dependsOn("deobfBinJar");
-        
+
         // stop people screwing stuff up.
         project.getGradle().getTaskGraph().whenReady(new Closure<Object>(this, null) {
             @Override
-            public Object call()
-            {
+            public Object call() {
                 TaskExecutionGraph graph = project.getGradle().getTaskGraph();
                 String path = project.getPath();
-                
-                if (graph.hasTask(path + "setupDecompWorkspace"))
-                {
-                    if (!System.getProperty("java.version").startsWith("1.7"))
-                    {
+
+                if (graph.hasTask(path + "setupDecompWorkspace")) {
+                    if (!System.getProperty("java.version").startsWith("1.7")) {
                         throw new RuntimeException("The setupDecompWorkspace will only work with Java 7! This is fixed in ForgeGradle 1.2");
                     }
                 }
                 return null;
             }
-            
+
             @Override
-            public Object call(Object obj)
-            {
+            public Object call(Object obj) {
                 return call();
             }
-            
+
             @Override
-            public Object call(Object... obj)
-            {
+            public Object call(Object... obj) {
                 return call();
             }
         });
     }
 
-    protected Class<UserExtension> getExtensionClass()
-    {
+    protected Class<UserExtension> getExtensionClass() {
         return UserExtension.class;
     }
 
     @Override
-    protected String getDevJson()
-    {
+    protected String getDevJson() {
         return DelayedBase.resolve(JSON, project);
     }
 
-    private void tasks()
-    {
+    private void tasks() {
         MergeJarsTask task = makeTask("mergeJars", MergeJarsTask.class);
         {
             task.setClient(delayedFile(Constants.JAR_CLIENT_FRESH));
@@ -238,8 +228,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
             task4.reobf(project.getTasks().getByName("jar"), new Action<ArtifactSpec>() {
 
                 @Override
-                public void execute(ArtifactSpec arg0)
-                {
+                public void execute(ArtifactSpec arg0) {
                     JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
                     arg0.setClasspath(javaConv.getSourceSets().getByName("main").getCompileClasspath());
                 }
@@ -257,8 +246,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         }
     }
 
-    private void delayedTasks()
-    {
+    private void delayedTasks() {
         ProcessJarTask deobf = (ProcessJarTask) project.getTasks().getByName("deobfuscateJar");
         boolean clean = deobf.isClean();
         DelayedFile decompOut = clean ? getDecompOut() : delayedFile(Constants.DECOMP_JAR);
@@ -284,8 +272,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
 
     protected abstract void addATs(ProcessJarTask task);
 
-    private void configureDeps()
-    {
+    private void configureDeps() {
         // create configs
         project.getConfigurations().create(CONFIG_USERDEV);
         project.getConfigurations().create(CONFIG_API_JAVADOCS);
@@ -298,8 +285,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         extractUserDev.into(delayedFile(PACK_DIR));
         extractUserDev.doLast(new Action<Task>() {
             @Override
-            public void execute(Task arg0)
-            {
+            public void execute(Task arg0) {
                 readAndApplyJson(delayedFile(JSON).call(), CONFIG, CONFIG_NATIVES, arg0.getLogger());
             }
         });
@@ -308,13 +294,12 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         ExtractTask extractNatives = makeTask("extractNatives", ExtractTask.class);
         extractNatives.into(delayedFile(NATIVES_DIR));
         extractNatives.dependsOn("extractUserDev");
-        
+
         // extra libs folder.
         project.getDependencies().add("compile", project.fileTree("libs"));
     }
 
-    protected void configureCompilation()
-    {
+    protected void configureCompilation() {
         Configuration config = project.getConfigurations().getByName(CONFIG);
 
         Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
@@ -348,8 +333,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         ideaConv.getModule().getSourceDirs().addAll(api.getAllSource().getFiles());
     }
 
-    private void doSourceReplacement()
-    {
+    private void doSourceReplacement() {
         JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
         SourceSet main = javaConv.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
 
@@ -370,8 +354,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         }
 
         // scala!!!
-        if (project.getPlugins().hasPlugin("scala"))
-        {
+        if (project.getPlugins().hasPlugin("scala")) {
             ScalaSourceSet set = (ScalaSourceSet) new DslObject(main).getConvention().getPlugins().get("scala");
 
             task = makeTask("sourceMainScala", SourceCopyTask.class);
@@ -386,8 +369,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         }
 
         // groovy!!!
-        if (project.getPlugins().hasPlugin("groovy"))
-        {
+        if (project.getPlugins().hasPlugin("groovy")) {
             GroovySourceSet set = (GroovySourceSet) new DslObject(main).getConvention().getPlugins().get("groovy");
 
             task = makeTask("sourceMainGroovy", SourceCopyTask.class);
@@ -402,26 +384,20 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         }
     }
 
-    @SuppressWarnings({ "unchecked" })
-    protected void configureEclipse()
-    {
+    @SuppressWarnings({"unchecked"})
+    protected void configureEclipse() {
         EclipseModel eclipseConv = (EclipseModel) project.getExtensions().getByName("eclipse");
 
         eclipseConv.getClasspath().setDownloadJavadoc(true);
         eclipseConv.getClasspath().setDownloadSources(true);
-        ((ActionBroadcast<Classpath>) eclipseConv.getClasspath().getFile().getWhenMerged()).add(new Action<Classpath>()
-        {
+        eclipseConv.getClasspath().getFile().getWhenMerged().add(new Action<Classpath>() {
             @Override
-            public void execute(Classpath classpath)
-            {
+            public void execute(Classpath classpath) {
                 String natives = delayedString(NATIVES_DIR).call().replace('\\', '/');
-                for (ClasspathEntry e : classpath.getEntries())
-                {
-                    if (e instanceof Library)
-                    {
+                for (ClasspathEntry e : classpath.getEntries()) {
+                    if (e instanceof Library) {
                         Library lib = (Library) e;
-                        if (lib.getPath().contains("lwjg") || lib.getPath().contains("jinput"))
-                        {
+                        if (lib.getPath().contains("lwjg") || lib.getPath().contains("jinput")) {
                             lib.setNativeLibraryLocation(natives);
                         }
                     }
@@ -431,20 +407,16 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
 
         Task task = makeTask("afterEclipseImport", DefaultTask.class);
         task.doLast(new Action<Object>() {
-            public void execute(Object obj)
-            {
-                try
-                {
+            public void execute(Object obj) {
+                try {
                     Node root = new XmlParser().parseText(Files.toString(project.file(".classpath"), Charset.defaultCharset()));
 
                     HashMap<String, String> map = new HashMap<String, String>();
                     map.put("name", "org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY");
                     map.put("value", delayedString(NATIVES_DIR).call());
 
-                    for (Node child : (List<Node>) root.children())
-                    {
-                        if (child.attribute("path").equals("org.springsource.ide.eclipse.gradle.classpathcontainer"))
-                        {
+                    for (Node child : (List<Node>) root.children()) {
+                        if (child.attribute("path").equals("org.springsource.ide.eclipse.gradle.classpathcontainer")) {
                             child.appendNode("attributes").appendNode("attribute", map);
                             break;
                         }
@@ -455,19 +427,15 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
                     project.getLogger().lifecycle(result);
                     Files.write(result, project.file(".classpath"), Charset.defaultCharset());
 
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    return;
                 }
             }
         });
     }
 
     @SuppressWarnings("serial")
-    protected void configureIntellij()
-    {
+    protected void configureIntellij() {
         IdeaModel ideaConv = (IdeaModel) project.getExtensions().getByName("idea");
 
         ideaConv.getModule().getExcludeDirs().addAll(project.files(".gradle", "build").getFiles());
@@ -477,10 +445,8 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         Task task = makeTask("genIntellijRuns", DefaultTask.class);
         task.doLast(new Action<Task>() {
             @Override
-            public void execute(Task task)
-            {
-                try
-                {
+            public void execute(Task task) {
+                try {
                     String module = task.getProject().getProjectDir().getCanonicalPath();
                     File file = project.file(".idea/workspace.xml");
                     if (!file.exists())
@@ -506,29 +472,22 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
                     //StreamResult result = new StreamResult(System.out);
 
                     transformer.transform(source, result);
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
-        
+
         if (ideaConv.getWorkspace().getIws() == null)
             return;
 
-        ideaConv.getWorkspace().getIws().withXml(new Closure<Object>(this, null)
-        {
-            public Object call(Object... obj)
-            {
+        ideaConv.getWorkspace().getIws().withXml(new Closure<Object>(this, null) {
+            public Object call(Object... obj) {
                 Element root = ((XmlProvider) this.getDelegate()).asElement();
                 Document doc = root.getOwnerDocument();
-                try
-                {
+                try {
                     injectIntellijRuns(doc, project.getProjectDir().getCanonicalPath());
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -537,17 +496,14 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         });
     }
 
-    public final void injectIntellijRuns(Document doc, String module) throws DOMException, IOException
-    {
+    public final void injectIntellijRuns(Document doc, String module) throws DOMException, IOException {
         Element root = null;
 
         {
             NodeList list = doc.getElementsByTagName("component");
-            for (int i = 0; i < list.getLength(); i++)
-            {
+            for (int i = 0; i < list.getLength(); i++) {
                 Element e = (Element) list.item(i);
-                if ("RunManager".equals(e.getAttribute("name")))
-                {
+                if ("RunManager".equals(e.getAttribute("name"))) {
                     root = e;
                     break;
                 }
@@ -767,13 +723,11 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
 
     @SuppressWarnings("unchecked")
     @Override
-    public void afterEvaluate()
-    {
+    public void afterEvaluate() {
         super.afterEvaluate();
 
         // grab the json && read dependencies
-        if (delayedFile(JSON).call().exists())
-        {
+        if (delayedFile(JSON).call().exists()) {
             readAndApplyJson(delayedFile(JSON).call(), CONFIG, CONFIG_NATIVES, project.getLogger());
         }
 
@@ -795,23 +749,19 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
             SourceSet main = javaConv.getSourceSets().getByName("main");
             SourceSet api = javaConv.getSourceSets().getByName("api");
 
-            for (File at : main.getResources().getFiles())
-            {
-                if (at.getName().toLowerCase().endsWith("_at.cfg"))
-                {
+            for (File at : main.getResources().getFiles()) {
+                if (at.getName().toLowerCase().endsWith("_at.cfg")) {
                     binDeobf.addTransformer(at);
                     decompDeobf.addTransformer(at);
-                    project.getLogger().lifecycle("AT found: "+at);
+                    project.getLogger().lifecycle("AT found: " + at);
                 }
             }
 
-            for (File at : api.getResources().getFiles())
-            {
-                if (at.getName().toLowerCase().endsWith("_at.cfg"))
-                {
+            for (File at : api.getResources().getFiles()) {
+                if (at.getName().toLowerCase().endsWith("_at.cfg")) {
                     binDeobf.addTransformer(at);
                     decompDeobf.addTransformer(at);
-                    project.getLogger().lifecycle("AT found: "+at);
+                    project.getLogger().lifecycle("AT found: " + at);
                 }
             }
         }
@@ -829,20 +779,15 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
 
         // link sources and javadocs eclipse
         EclipseModel eclipseConv = (EclipseModel) project.getExtensions().getByName("eclipse");
-        ((ActionBroadcast<Classpath>) eclipseConv.getClasspath().getFile().getWhenMerged()).add(new Action<Classpath>()
-        {
-            FileReferenceFactory factory = new FileReferenceFactory();
+        eclipseConv.getClasspath().getFile().getWhenMerged().add(new Action<Classpath>() {
+            final FileReferenceFactory factory = new FileReferenceFactory();
 
             @Override
-            public void execute(Classpath classpath)
-            {
-                for (ClasspathEntry e : classpath.getEntries())
-                {
-                    if (e instanceof Library)
-                    {
+            public void execute(Classpath classpath) {
+                for (ClasspathEntry e : classpath.getEntries()) {
+                    if (e instanceof Library) {
                         Library lib = (Library) e;
-                        if (lib.getLibrary().getFile().equals(deobfOut))
-                        {
+                        if (lib.getLibrary().getFile().equals(deobfOut)) {
                             lib.setJavadocPath(factory.fromFile(project.getConfigurations().getByName(CONFIG_API_JAVADOCS).getSingleFile()));
                             lib.setSourcePath(factory.fromFile(project.getConfigurations().getByName(CONFIG_API_SRC).getSingleFile()));
                         }
@@ -853,20 +798,16 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
 
         // link sources and javadocs ntellij idea
         IdeaModel ideaConv = (IdeaModel) project.getExtensions().getByName("idea");
-        ((ActionBroadcast<Module>) ideaConv.getModule().getIml().getWhenMerged()).add(new Action<Module>() {
+        ideaConv.getModule().getIml().getWhenMerged().add(new Action<Module>() {
 
-            PathFactory factory = new PathFactory();
+            final PathFactory factory = new PathFactory();
 
             @Override
-            public void execute(Module module)
-            {
-                for (Dependency d : module.getDependencies())
-                {
-                    if (d instanceof SingleEntryModuleLibrary)
-                    {
+            public void execute(Module module) {
+                for (Dependency d : module.getDependencies()) {
+                    if (d instanceof SingleEntryModuleLibrary) {
                         SingleEntryModuleLibrary lib = (SingleEntryModuleLibrary) d;
-                        if (lib.getLibraryFile().equals(deobfOut))
-                        {
+                        if (lib.getLibraryFile().equals(deobfOut)) {
                             lib.getJavadoc().add(factory.path("jar://" + project.getConfigurations().getByName(CONFIG_API_JAVADOCS).getSingleFile().getAbsolutePath().replace('\\', '/') + "!/"));
                             lib.getSources().add(factory.path("jar://" + project.getConfigurations().getByName(CONFIG_API_SRC).getSingleFile().getAbsolutePath().replace('\\', '/') + "!/"));
                         }
@@ -880,8 +821,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
     }
 
     @Override
-    public void finalCall()
-    {
+    public void finalCall() {
         Configuration config = project.getConfigurations().getByName(CONFIG);
 
         Javadoc javadoc = (Javadoc) project.getTasks().getByName("javadoc");
@@ -897,17 +837,15 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         compileConfig.extendsFrom(config);
     }
 
-    private static final byte[] LOCATION_BEFORE = new byte[] { 0x40, (byte) 0xB1, (byte) 0x8B, (byte) 0x81, 0x23, (byte) 0xBC, 0x00, 0x14, 0x1A, 0x25, (byte) 0x96, (byte) 0xE7, (byte) 0xA3, (byte) 0x93, (byte) 0xBE, 0x1E };
-    private static final byte[] LOCATION_AFTER  = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte) 0xC0, 0x58, (byte) 0xFB, (byte) 0xF3, 0x23, (byte) 0xBC, 0x00, 0x14, 0x1A, 0x51, (byte) 0xF3, (byte) 0x8C, 0x7B, (byte) 0xBB, 0x77, (byte) 0xC6 };
+    private static final byte[] LOCATION_BEFORE = new byte[]{0x40, (byte) 0xB1, (byte) 0x8B, (byte) 0x81, 0x23, (byte) 0xBC, 0x00, 0x14, 0x1A, 0x25, (byte) 0x96, (byte) 0xE7, (byte) 0xA3, (byte) 0x93, (byte) 0xBE, 0x1E};
+    private static final byte[] LOCATION_AFTER = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte) 0xC0, 0x58, (byte) 0xFB, (byte) 0xF3, 0x23, (byte) 0xBC, 0x00, 0x14, 0x1A, 0x51, (byte) 0xF3, (byte) 0x8C, 0x7B, (byte) 0xBB, 0x77, (byte) 0xC6};
 
-    protected void fixEclipseProject(String path)
-    {
+    protected void fixEclipseProject(String path) {
         File f = new File(path);
         if (f.exists())// && f.length() == 0)
         {
-            String projectDir = "URI//" + project.getProjectDir().toURI().toString();
-            try
-            {
+            String projectDir = "URI//" + project.getProjectDir().toURI();
+            try {
                 FileOutputStream fos = new FileOutputStream(f);
                 fos.write(LOCATION_BEFORE); //Unknown but w/e
                 fos.write((byte) ((projectDir.length() & 0xFF) >> 8));
@@ -915,24 +853,17 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
                 fos.write(projectDir.getBytes());
                 fos.write(LOCATION_AFTER); //Unknown but w/e
                 fos.close();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void readAndApplyJson(File file, String depConfig, String nativeConfig, Logger log)
-    {
-        if (version == null)
-        {
-            try
-            {
+    private void readAndApplyJson(File file, String depConfig, String nativeConfig, Logger log) {
+        if (version == null) {
+            try {
                 version = JsonFactory.loadVersion(file);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 log.error("" + file + " could not be parsed");
                 Throwables.propagate(e);
             }
@@ -945,27 +876,21 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         DependencyHandler handler = project.getDependencies();
 
         // actual dependencies
-        if (project.getConfigurations().getByName(depConfig).getState() == State.UNRESOLVED)
-        {
-            for (net.minecraftforge.gradle.common.version.Library lib : version.getLibraries())
-            {
+        if (project.getConfigurations().getByName(depConfig).getState() == State.UNRESOLVED) {
+            for (net.minecraftforge.gradle.common.version.Library lib : version.getLibraries()) {
                 if (lib.natives == null)
                     handler.add(depConfig, lib.getArtifactName());
             }
-        }
-        else
+        } else
             log.info("RESOLVED: " + depConfig);
 
         // the natives
-        if (project.getConfigurations().getByName(nativeConfig).getState() == State.UNRESOLVED)
-        {
-            for (net.minecraftforge.gradle.common.version.Library lib : version.getLibraries())
-            {
+        if (project.getConfigurations().getByName(nativeConfig).getState() == State.UNRESOLVED) {
+            for (net.minecraftforge.gradle.common.version.Library lib : version.getLibraries()) {
                 if (lib.natives != null)
                     handler.add(nativeConfig, lib.getArtifactName());
             }
-        }
-        else
+        } else
             log.info("RESOLVED: " + nativeConfig);
 
         hasApplied = true;
@@ -973,8 +898,7 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
         // add stuff to the natives task thing..
         // extract natives
         ExtractTask task = (ExtractTask) project.getTasks().findByName("extractNatives");
-        for (File dep : project.getConfigurations().getByName(CONFIG_NATIVES).getFiles())
-        {
+        for (File dep : project.getConfigurations().getByName(CONFIG_NATIVES).getFiles()) {
             log.info("ADDING NATIVE: " + dep.getPath());
             task.from(delayedFile(dep.getAbsolutePath()));
             task.exclude("META-INF/**", "META-INF/**");
@@ -982,24 +906,20 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension>
     }
 
     @Override
-    public String resolve(String pattern, Project project, UserExtension exten)
-    {
+    public String resolve(String pattern, Project project, UserExtension exten) {
         pattern = super.resolve(pattern, project, exten);
         pattern = pattern.replace("{API_VERSION}", exten.getApiVersion());
         return pattern;
     }
 
-    private void addGitIgnore()
-    {
+    private void addGitIgnore() {
         File git = new File(project.getBuildDir(), ".gitignore");
-        if (!git.exists())
-        {
+        if (!git.exists()) {
             git.getParentFile().mkdir();
-            try
-            {
+            try {
                 Files.write("#Seriously guys, stop commiting this to your git repo!\r\n*".getBytes(), git);
+            } catch (IOException e) {
             }
-            catch (IOException e){}
         }
     }
 }

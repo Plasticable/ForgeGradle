@@ -16,11 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.xml.bind.DatatypeConverter;
-
 import net.minecraftforge.gradle.delayed.DelayedFile;
 import net.minecraftforge.gradle.delayed.DelayedString;
 
+import org.apache.xerces.impl.dv.util.Base64;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
@@ -61,7 +60,7 @@ public class ChangelogTask extends DefaultTask
         if (getAuthName() != null && getAuthPassword() != null)
         {
             String raw = getAuthName() + ":" + getAuthPassword();
-            auth = "Basic " + DatatypeConverter.printBase64Binary(raw.getBytes());
+            auth = "Basic " + Base64.encode(raw.getBytes());
         }
 
         List<Map<String, Object>> builds = getBuildInfo();

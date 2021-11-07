@@ -36,6 +36,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -49,11 +50,13 @@ public class ZipFileTree implements MinimalFileTree
         this.zipFile = zipFile;
     }
 
+    @Override
     public String getDisplayName()
     {
         return String.format("ZIP '%s'", zipFile);
     }
 
+    @Override
     public void visit(FileVisitor visitor)
     {
         if (!zipFile.exists())
@@ -81,7 +84,7 @@ public class ZipFileTree implements MinimalFileTree
                 Enumeration<? extends ZipEntry> entries = zip.entries();
                 while (entries.hasMoreElements())
                 {
-                    ZipEntry entry = (ZipEntry) entries.nextElement();
+                    ZipEntry entry = entries.nextElement();
                     entriesByName.put(entry.getName(), entry);
                 }
                 Iterator<ZipEntry> sortedEntries = entriesByName.values().iterator();
@@ -109,6 +112,16 @@ public class ZipFileTree implements MinimalFileTree
         }
     }
 
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        builder.add(zipFile);
+    }
+
+    @Override
+    public void visitTreeOrBackingFile(FileVisitor visitor) {
+        // ?
+    }
+
     private class DetailsImpl implements FileVisitDetails
     {
         private final ZipEntry      entry;
@@ -128,6 +141,7 @@ public class ZipFileTree implements MinimalFileTree
             return String.format("zip entry %s!%s", zipFile, entry.getName());
         }
 
+        @Override
         public void stopVisiting()
         {
             stopFlag.set(true);
@@ -137,6 +151,7 @@ public class ZipFileTree implements MinimalFileTree
          * Changed this to return a broken value! Be warned! Will not be a valid file, do not read it.
          * Standard Jar/Zip tasks don't care about this, even though they call it.
          */
+        @Override
         public File getFile()
         {
             if (file == null)
@@ -147,21 +162,25 @@ public class ZipFileTree implements MinimalFileTree
             return file;
         }
 
+        @Override
         public long getLastModified()
         {
             return entry.getTime();
         }
 
+        @Override
         public boolean isDirectory()
         {
             return entry.isDirectory();
         }
 
+        @Override
         public long getSize()
         {
             return entry.getSize();
         }
 
+        @Override
         public InputStream open()
         {
             try
@@ -174,6 +193,7 @@ public class ZipFileTree implements MinimalFileTree
             }
         }
 
+        @Override
         public RelativePath getRelativePath()
         {
             return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
@@ -187,16 +207,19 @@ public class ZipFileTree implements MinimalFileTree
             return getDisplayName();
         }
 
+        @Override
         public String getName()
         {
             return getRelativePath().getLastName();
         }
 
+        @Override
         public String getPath()
         {
             return getRelativePath().getPathString();
         }
 
+        @Override
         public void copyTo(OutputStream outstr)
         {
             try
@@ -217,6 +240,7 @@ public class ZipFileTree implements MinimalFileTree
             }
         }
 
+        @Override
         public boolean copyTo(File target)
         {
             validateTimeStamps();
@@ -235,7 +259,7 @@ public class ZipFileTree implements MinimalFileTree
             }
             catch (Exception e)
             {
-                throw new GradleException(String.format("Could not copy %s to '%s'.", new Object[] { getDisplayName(), target }), e);
+                throw new GradleException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
             }
         }
 
@@ -243,7 +267,7 @@ public class ZipFileTree implements MinimalFileTree
         {
             long lastModified = getLastModified();
             if (lastModified < 0L)
-                throw new GradleException(String.format("Invalid Timestamp %s for '%s'.", new Object[] { Long.valueOf(lastModified), getDisplayName() }));
+                throw new GradleException(String.format("Invalid Timestamp %s for '%s'.", Long.valueOf(lastModified), getDisplayName()));
         }
 
         private void copyFile(File target) throws IOException
@@ -259,9 +283,10 @@ public class ZipFileTree implements MinimalFileTree
             }
         }
 
+        @Override
         public int getMode()
         {
-            return ((isDirectory()) ? 493 : 420);
+            return isDirectory() ? 493 : 420;
         }
     }
 }
