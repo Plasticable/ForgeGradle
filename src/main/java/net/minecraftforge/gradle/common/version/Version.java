@@ -37,6 +37,11 @@ public class Version
                         lib.name = "net.sourceforge.argo:argo:3.4";
                     }
 
+                    if (lib.name.equals("org.ow2.asm:asm-debug-all:4.1")) {
+                        System.out.println("Bumping ASM version");
+                        lib.name = "org.ow2.asm:asm-all:5.0";
+                    }
+
                     _libraries.add(lib);
                 }
             }
