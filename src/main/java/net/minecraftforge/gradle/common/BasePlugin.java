@@ -274,7 +274,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     }
 
     protected DelayedString delayedDebugString(String path) {
-        project.getLogger().info("DelayedDebugString: " + path);
+        System.out.println("DelayedDebugString: " + path);
         return delayedString(path);
     }
 
