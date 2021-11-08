@@ -39,7 +39,7 @@ public class Version
 
                     if (lib.name.equals("org.ow2.asm:asm-debug-all:4.1")) {
                         System.out.println("Bumping ASM version");
-                        lib.name = "org.ow2.asm:asm-all:5.0";
+                        lib.name = "org.ow2.asm:asm-all:5.2";
                     }
 
                     _libraries.add(lib);

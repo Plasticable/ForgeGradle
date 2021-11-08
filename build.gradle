@@ -4,7 +4,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven'
 
 group = 'net.minecraftforge.gradle'
-version = '1.0-MODERN-0.3'
+version = '1.0-MODERN-0.4'
 archivesBaseName = 'ForgeGradle'
 targetCompatibility = '1.6'
 sourceCompatibility = '1.6'
@@ -32,7 +32,7 @@ dependencies {
     compile gradleApi()
     
     // moved to the beginning to be the overrider
-    compile 'org.ow2.asm:asm-all:5.0'
+    compile 'org.ow2.asm:asm-all:5.2'
 
     compile 'net.sourceforge.argo:argo:3.4' // json stuff? perhaps replace with json slurper and stuff?
     compile 'net.sf.opencsv:opencsv:2.3' // reading CSVs.. also used by SpecialSource
