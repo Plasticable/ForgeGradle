@@ -71,6 +71,10 @@ public class Library
         return url == null ? Constants.LIBRARY_URL : url; 
     }
 
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     @Override
     public String toString()
     {

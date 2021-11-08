@@ -39,12 +39,13 @@ public class Version
 
                     if (lib.name.equals("org.ow2.asm:asm-debug-all:4.1")) {
                         System.out.println("Bumping ASM version");
-                        lib.name = "org.ow2.asm:asm-all:5.2";
+                        lib.name = "org.ow2.asm:asm-debug-all:5.2";
                     }
 
                     if (lib.name.equals("net.minecraft:launchwrapper:1.8")) {
-                        System.out.println("Bumping LaunchWrapper version");
-                        lib.name = "net.minecraft:launchwrapper:1.12";
+                        System.out.println("Replacing LaunchWrapper");
+                        lib.name = "com.github.Plasticable:LaunchWrapper:1.8-0.1";
+                        lib.setUrl("https://jitpack.io/");
                     }
 
                     _libraries.add(lib);
