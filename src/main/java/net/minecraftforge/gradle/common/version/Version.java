@@ -42,6 +42,11 @@ public class Version
                         lib.name = "org.ow2.asm:asm-all:5.2";
                     }
 
+                    if (lib.name.equals("net.minecraft:launchwrapper:1.8")) {
+                        System.out.println("Bumping LaunchWrapper version");
+                        lib.name = "net.minecraft:launchwrapper:1.12";
+                    }
+
                     _libraries.add(lib);
                 }
             }
