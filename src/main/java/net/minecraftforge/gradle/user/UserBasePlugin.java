@@ -893,6 +893,11 @@ public abstract class UserBasePlugin extends BasePlugin<UserExtension> {
         } else
             log.info("RESOLVED: " + nativeConfig);
 
+        log.info("Artifacts:");
+        for (net.minecraftforge.gradle.common.version.Library lib : version.getLibraries()) {
+            log.info("\t" + lib.getArtifactName());
+        }
+
         hasApplied = true;
 
         // add stuff to the natives task thing..
